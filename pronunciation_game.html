@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vườn Chim Phát Âm 🦜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#4EC5F1;
+    --sky-deep:#2FA8DC;
+    --sun:#FFD166;
+    --grass:#06D6A0;
+    --coral:#FF6B6B;
+    --cream:#FFFBF2;
+    --ink:#2E2657;
+    --white:#FFFFFF;
+    --purple-shadow: rgba(46,38,87,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:'Nunito', sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  body{
+    width:100vw;height:100vh;
+    background:linear-gradient(180deg,var(--sky) 0%, var(--sky-deep) 55%, #1E8FC7 100%);
+    position:relative;
+  }
+  /* decorative clouds */
+  .cloud{
+    position:absolute; background:#fff; border-radius:50%;
+    opacity:0.85; filter:blur(0.5px);
+  }
+  .cloud::before, .cloud::after{content:'';position:absolute;background:#fff;border-radius:50%;}
+  .c1{width:120px;height:46px; top:6%; left:6%;}
+  .c1::before{width:60px;height:60px; top:-30px; left:12px;}
+  .c1::after{width:44px;height:44px; top:-18px; left:60px;}
+  .c2{width:90px;height:36px; top:12%; right:10%;}
+  .c2::before{width:46px;height:46px; top:-22px; left:8px;}
+  .c2::after{width:34px;height:34px; top:-14px; left:46px;}
+  .c3{width:70px;height:28px; top:70%; left:3%; opacity:0.5;}
+  .c3::before{width:36px;height:36px; top:-16px; left:6px;}
+  .c3::after{width:26px;height:26px; top:-10px; left:34px;}
+
+  .sun{
+    position:absolute; top:5%; right:5%; width:90px;height:90px;
+    background:radial-gradient(circle at 35% 35%, #FFE29A, var(--sun));
+    border-radius:50%;
+    box-shadow:0 0 40px rgba(255,209,102,0.8);
+    animation: spin 20s linear infinite;
+  }
+  @keyframes spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+  .screen{
+    position:absolute; inset:0;
+    display:none;
+    align-items:center; justify-content:center;
+    padding:2vh 3vw;
+  }
+  .screen.active{ display:flex; }
+
+  /* ---------- LAYOUT 1: SETUP ---------- */
+  .setup-card{
+    background:var(--cream);
+    border-radius:36px;
+    box-shadow:0 20px 0 var(--purple-shadow), 0 25px 40px rgba(0,0,0,0.25);
+    width:min(1000px, 92vw);
+    max-height:88vh;
+    display:flex;
+    padding:3vh 3vw;
+    gap:3vw;
+    align-items:stretch;
+  }
+  .setup-left{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:1.2vh;
+  }
+  .setup-right{
+    flex:1.15;
+    display:flex;
+    flex-direction:column;
+    gap:1.4vh;
+    justify-content:center;
+  }
+  .mascot-badge{
+    font-size:5.5rem;
+    line-height:1;
+    filter:drop-shadow(0 8px 0 rgba(0,0,0,0.08));
+    animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+
+  h1.title{
+    font-family:'Baloo 2', sans-serif;
+    font-size:2.6rem;
+    margin:0.2rem 0 0.3rem;
+    color:var(--ink);
+    line-height:1.05;
+  }
+  p.subtitle{
+    font-size:1.15rem;
+    font-weight:700;
+    color:#5b527f;
+    margin:0;
+  }
+  label.field-label{
+    font-family:'Baloo 2', sans-serif;
+    font-size:1.3rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  textarea#wordInput{
+    width:100%;
+    min-height:16vh;
+    font-size:1.4rem;
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    border:4px solid #E4DCC6;
+    border-radius:22px;
+    padding:1.2rem;
+    resize:none;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+    transition: border-color .2s;
+  }
+  textarea#wordInput:focus{ border-color: var(--sky-deep); }
+
+  .chips{
+    display:flex; flex-wrap:wrap; gap:0.6rem;
+    min-height:2.4rem;
+  }
+  .chip{
+    background:var(--grass);
+    color:#fff;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    padding:0.4rem 1rem;
+    border-radius:999px;
+    box-shadow:0 4px 0 rgba(0,0,0,0.12);
+  }
+  .hint{
+    font-size:0.95rem;
+    color:#8b8399;
+    font-weight:700;
+  }
+
+  .big-btn{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.6rem;
+    color:#fff;
+    border:none;
+    border-radius:24px;
+    padding:1.1rem 2rem;
+    cursor:pointer;
+    box-shadow:0 8px 0 rgba(0,0,0,0.18);
+    transition: transform .08s ease, box-shadow .08s ease;
+    display:flex; align-items:center; justify-content:center; gap:0.6rem;
+  }
+  .big-btn:active{ transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .big-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn-start{ background:var(--coral); align-self:flex-start; }
+  .btn-retry{ background:var(--sun); color:var(--ink); }
+  .btn-continue{ background:var(--grass); }
+  .btn-restart{ background:var(--coral); }
+
+  /* ---------- LAYOUT 2: GAME ---------- */
+  .game-card{
+    width:min(1100px, 94vw);
+    max-height:92vh;
+    background:var(--cream);
+    border-radius:36px;
+    box-shadow:0 20px 0 var(--purple-shadow), 0 25px 40px rgba(0,0,0,0.25);
+    padding:2.2vh 3vw 2.6vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1.4vh;
+    position:relative;
+  }
+  .progress-row{
+    width:100%;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .progress-label{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.2rem;
+    background:var(--sky);
+    color:#fff;
+    padding:0.4rem 1.1rem;
+    border-radius:999px;
+  }
+  .progress-bar-track{
+    flex:1;
+    height:16px;
+    background:#EDE6D0;
+    border-radius:999px;
+    margin:0 1.2rem;
+    overflow:hidden;
+  }
+  .progress-bar-fill{
+    height:100%;
+    background:var(--grass);
+    border-radius:999px;
+    transition: width .4s ease;
+  }
+
+  .stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:3vw;
+    width:100%;
+    flex:1;
+  }
+  .parrot-wrap{
+    display:flex; flex-direction:column; align-items:center; gap:0.6vh;
+    flex:0 0 auto;
+  }
+  .parrot{
+    font-size:6.5rem;
+    animation: bob 1.6s ease-in-out infinite;
+    filter:drop-shadow(0 10px 0 rgba(0,0,0,0.1));
+  }
+  .parrot.listening{ animation: shake 0.5s ease-in-out infinite; }
+  @keyframes shake{ 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
+  .mic-status{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.1rem;
+    color:var(--sky-deep);
+    display:flex; align-items:center; gap:0.5rem;
+  }
+  .mic-dot{
+    width:12px;height:12px;border-radius:50%;
+    background:var(--coral);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(1.4);} }
+
+  .word-panel{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; gap:2vh;
+  }
+  .speech-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:2vh 4vw;
+    box-shadow:0 10px 0 rgba(0,0,0,0.08);
+    position:relative;
+    text-align:center;
+  }
+  .speech-bubble::after{
+    content:'';
+    position:absolute; left:-18px; top:50%; transform:translateY(-50%);
+    border:16px solid transparent;
+    border-right-color:#fff;
+  }
+  #currentWord{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:4.2rem;
+    color:var(--ink);
+    letter-spacing:1px;
+  }
+  .timer-ring-wrap{ position:relative; width:120px; height:120px; }
+  .timer-ring-wrap svg{ transform:rotate(-90deg); width:120px; height:120px; }
+  .timer-ring-bg{ fill:none; stroke:#EDE6D0; stroke-width:12; }
+  .timer-ring-fg{ fill:none; stroke:var(--grass); stroke-width:12; stroke-linecap:round; transition: stroke .3s; }
+  .timer-num{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif;
+    font-size:2.2rem;
+    font-weight:800;
+    color:var(--ink);
+  }
+
+  .result-panel{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:1.2vh;
+    width:100%;
+  }
+  .result-panel.show{ display:flex; }
+  .stars{
+    display:flex; gap:0.4rem;
+    font-size:3.4rem;
+    line-height:1;
+  }
+  .star{
+    opacity:0.25;
+    transform:scale(0.4);
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+  }
+  .star.lit{ opacity:1; transform:scale(1); }
+  .feedback-text{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.6rem;
+    color:var(--ink);
+  }
+  .heard-text{
+    font-size:1rem;
+    font-weight:700;
+    color:#8b8399;
+  }
+  .action-row{
+    display:flex; gap:1.4rem;
+    margin-top:0.6vh;
+  }
+  .action-row .big-btn{ font-size:1.3rem; padding:0.9rem 1.8rem; }
+
+  /* completion screen */
+  .complete-card{
+    width:min(760px,90vw);
+    background:var(--cream);
+    border-radius:36px;
+    box-shadow:0 20px 0 var(--purple-shadow), 0 25px 40px rgba(0,0,0,0.25);
+    padding:3vh 3vw;
+    display:flex; flex-direction:column; align-items:center; gap:1.4vh;
+    max-height:90vh;
+  }
+  .score-list{
+    width:100%;
+    display:flex; flex-direction:column; gap:0.6rem;
+    max-height:40vh; overflow-y:auto; padding-right:0.4rem;
+  }
+  .score-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:#fff; border-radius:16px; padding:0.7rem 1.2rem;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:1.1rem;
+  }
+  .score-row .stars-mini{ font-size:1.1rem; letter-spacing:2px; }
+  .unsupported-banner{
+    background:var(--coral); color:#fff; font-weight:800;
+    padding:1rem 1.4rem; border-radius:18px; text-align:center;
+    font-family:'Baloo 2', sans-serif; font-size:1.1rem;
+    display:none;
+  }
+
+  .loading-panel{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:1rem;
+  }
+  .loading-panel.show{ display:flex; }
+  .loading-spinner{
+    width:56px;height:56px;
+    border:8px solid #EDE6D0;
+    border-top-color:var(--sky-deep);
+    border-radius:50%;
+    animation: spin-fast 0.8s linear infinite;
+  }
+  @keyframes spin-fast{ to{ transform:rotate(360deg); } }
+  .loading-text{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.3rem;
+    color:var(--ink);
+  }
+</style>
+</head>
+<body>
+
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+
+  <!-- LAYOUT 1: SETUP -->
+  <div id="screen-setup" class="screen active">
+    <div class="setup-card">
+      <div class="setup-left">
+        <div class="mascot-badge">🦜</div>
+        <h1 class="title">Vườn Chim<br>Phát Âm</h1>
+        <p class="subtitle">Bé nhập từ tiếng Anh muốn luyện,<br>rồi cùng Vẹt Xanh phát âm thật hay nhé!</p>
+        <div id="unsupportedBanner" class="unsupported-banner">
+          😿 Trình duyệt này chưa hỗ trợ ghi âm micro.<br>Bé hãy nhờ bố mẹ mở bằng Google Chrome nha!
+        </div>
+      </div>
+      <div class="setup-right">
+        <label class="field-label" for="wordInput">✏️ Danh sách từ vựng</label>
+        <textarea id="wordInput" placeholder="cat, dog, apple, banana, elephant..."></textarea>
+        <div class="hint">Gõ mỗi từ cách nhau bằng dấu phẩy hoặc xuống dòng</div>
+        <div class="chips" id="chipPreview"></div>
+        <button class="big-btn btn-start" id="startBtn" disabled>▶ Bắt Đầu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT 2: GAME -->
+  <div id="screen-game" class="screen">
+    <div class="game-card">
+      <div class="progress-row">
+        <div class="progress-label" id="progressLabel">Từ 1/1</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-label" id="scoreLabel">⭐ 0</div>
+      </div>
+
+      <div class="stage">
+        <div class="parrot-wrap">
+          <div class="parrot" id="parrotEmoji">🦜</div>
+          <div class="mic-status" id="micStatus"><span class="mic-dot"></span> Đang nghe...</div>
+        </div>
+
+        <div class="word-panel">
+          <div class="speech-bubble">
+            <div id="currentWord">word</div>
+          </div>
+
+          <div class="timer-ring-wrap" id="timerWrap">
+            <svg viewBox="0 0 120 120">
+              <circle class="timer-ring-bg" cx="60" cy="60" r="50"></circle>
+              <circle class="timer-ring-fg" id="timerRing" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="timer-num" id="timerNum">7</div>
+          </div>
+
+          <div class="loading-panel" id="loadingPanel">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">🦜 Vẹt Xanh đang chấm điểm...</div>
+          </div>
+
+          <div class="result-panel" id="resultPanel">
+            <div class="stars" id="starsRow">
+              <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+            </div>
+            <div class="feedback-text" id="feedbackText">Tuyệt vời!</div>
+            <div class="heard-text" id="heardText">Máy nghe được: ...</div>
+            <div class="action-row">
+              <button class="big-btn btn-retry" id="retryBtn">🔄 Thử lại</button>
+              <button class="big-btn btn-continue" id="continueBtn">➡️ Tiếp tục</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT 3: COMPLETION -->
+  <div id="screen-complete" class="screen">
+    <div class="complete-card">
+      <div class="mascot-badge">🎉🦜🎉</div>
+      <h1 class="title">Chúc mừng bé!</h1>
+      <p class="subtitle" id="finalAvg">Điểm trung bình: ⭐⭐⭐⭐⭐</p>
+      <div class="score-list" id="scoreList"></div>
+      <button class="big-btn btn-restart" id="restartBtn">🔁 Chơi Lại Từ Đầu</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---------- Hugging Face config ----------
+  // ⚠️ SECURITY NOTE: this token is visible to anyone who views this page's
+  // source (View Page Source / DevTools), including anyone you share the
+  // hosted link with. That's fine for a private/family app, but:
+  //   1) Don't post this link somewhere public.
+  //   2) Since this token was pasted into a chat, treat it as compromised —
+  //      go to https://huggingface.co/settings/tokens, delete it, and create
+  //      a fresh one to paste in here instead.
+  const HF_TOKEN = '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';
+  const HF_MODEL = 'openai/whisper-base.en';
+  const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+
+  // ---------- State ----------
+  let words = [];
+  let currentIndex = 0;
+  let scores = []; // {word, stars, heard}
+  let timerInterval = null;
+  let timeLeft = 7;
+  const TOTAL_TIME = 7;
+  let latestTranscript = '';
+  let awaitingEvaluation = false;
+
+  // Microphone / recording state (replaces the old Web Speech API)
+  let mediaStream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let micReady = false;
+
+  const micSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+
+  // ---------- DOM refs ----------
+  const screenSetup = document.getElementById('screen-setup');
+  const screenGame = document.getElementById('screen-game');
+  const screenComplete = document.getElementById('screen-complete');
+
+  const wordInput = document.getElementById('wordInput');
+  const chipPreview = document.getElementById('chipPreview');
+  const startBtn = document.getElementById('startBtn');
+  const unsupportedBanner = document.getElementById('unsupportedBanner');
+
+  const progressLabel = document.getElementById('progressLabel');
+  const progressFill = document.getElementById('progressFill');
+  const scoreLabel = document.getElementById('scoreLabel');
+  const currentWordEl = document.getElementById('currentWord');
+  const parrotEmoji = document.getElementById('parrotEmoji');
+  const micStatus = document.getElementById('micStatus');
+  const timerWrap = document.getElementById('timerWrap');
+  const timerRing = document.getElementById('timerRing');
+  const timerNum = document.getElementById('timerNum');
+  const loadingPanel = document.getElementById('loadingPanel');
+  const resultPanel = document.getElementById('resultPanel');
+  const starsRow = document.getElementById('starsRow');
+  const feedbackText = document.getElementById('feedbackText');
+  const heardText = document.getElementById('heardText');
+  const retryBtn = document.getElementById('retryBtn');
+  const continueBtn = document.getElementById('continueBtn');
+
+  const finalAvg = document.getElementById('finalAvg');
+  const scoreList = document.getElementById('scoreList');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const RING_CIRCUMFERENCE = 314;
+
+  // ---------- Setup screen logic ----------
+  function parseWords(){
+    const raw = wordInput.value;
+    const parts = raw.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+    const seen = new Set();
+    const unique = [];
+    parts.forEach(p=>{
+      const key = p.toLowerCase();
+      if(!seen.has(key)){ seen.add(key); unique.push(p); }
+    });
+    return unique;
+  }
+
+  function renderChips(){
+    const list = parseWords();
+    chipPreview.innerHTML = '';
+    list.forEach(w=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = w;
+      chipPreview.appendChild(chip);
+    });
+    startBtn.disabled = list.length === 0 || !micSupported;
+  }
+
+  wordInput.addEventListener('input', renderChips);
+
+  startBtn.addEventListener('click', async ()=>{
+    words = parseWords();
+    if(words.length === 0) return;
+    scores = [];
+    currentIndex = 0;
+    startBtn.disabled = true;
+    startBtn.textContent = '🎙️ Đang xin quyền micro...';
+    await initMicOnce(); // ask mic permission ONE time, right on this click
+    startBtn.disabled = false;
+    startBtn.textContent = '▶ Bắt Đầu';
+    showScreen(screenGame);
+    loadWord(currentIndex);
+  });
+
+  function showScreen(el){
+    [screenSetup, screenGame, screenComplete].forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ---------- Game screen logic ----------
+  function updateProgressUI(){
+    progressLabel.textContent = `Từ ${currentIndex+1}/${words.length}`;
+    progressFill.style.width = `${(currentIndex/words.length)*100}%`;
+    const totalStars = scores.reduce((a,s)=>a+s.stars,0);
+    scoreLabel.textContent = `⭐ ${totalStars}`;
+  }
+
+  function loadWord(index){
+    latestTranscript = '';
+    awaitingEvaluation = false;
+    resultPanel.classList.remove('show');
+    timerWrap.style.display = 'block';
+    currentWordEl.textContent = words[index];
+    updateProgressUI();
+    resetStarsDisplay();
+    startTimerAndListening();
+  }
+
+  function resetStarsDisplay(){
+    document.querySelectorAll('#starsRow .star').forEach(s => s.classList.remove('lit'));
+  }
+
+  function startTimerAndListening(){
+    timeLeft = TOTAL_TIME;
+    timerNum.textContent = timeLeft;
+    timerRing.setAttribute('stroke-dashoffset', 0);
+    timerRing.style.stroke = 'var(--grass)';
+    parrotEmoji.classList.add('listening');
+    micStatus.style.visibility = 'visible';
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+      timeLeft -= 1;
+      timerNum.textContent = Math.max(timeLeft,0);
+      const offset = RING_CIRCUMFERENCE * (1 - timeLeft/TOTAL_TIME);
+      timerRing.setAttribute('stroke-dashoffset', offset);
+      if(timeLeft <= 2){ timerRing.style.stroke = 'var(--coral)'; }
+      else if(timeLeft <= 4){ timerRing.style.stroke = 'var(--sun)'; }
+      if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        finishListening();
+      }
+    }, 1000);
+
+    startRecording();
+  }
+
+  // Requested ONCE, on the Start button click, and the same audio stream is
+  // reused for every word from then on — this is what keeps the browser from
+  // re-prompting for mic permission every round.
+  async function initMicOnce(){
+    if(mediaStream || !micSupported) return;
+    try{
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micReady = true;
+    }catch(e){
+      micReady = false;
+    }
+  }
+
+  function startRecording(){
+    if(!mediaStream){ return; }
+    recordedChunks = [];
+    try{
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : (MediaRecorder.isTypeSupported('audio/ogg') ? 'audio/ogg' : '');
+      mediaRecorder = mimeType ? new MediaRecorder(mediaStream, { mimeType }) : new MediaRecorder(mediaStream);
+      mediaRecorder.ondataavailable = (e)=>{ if(e.data && e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.start();
+    }catch(e){
+      mediaRecorder = null;
+    }
+  }
+
+  // Stops the current recording and resolves with the recorded audio Blob
+  function stopRecordingAndGetBlob(){
+    return new Promise((resolve)=>{
+      if(!mediaRecorder || mediaRecorder.state === 'inactive'){ resolve(null); return; }
+      mediaRecorder.onstop = ()=>{
+        const type = mediaRecorder.mimeType || 'audio/webm';
+        resolve(new Blob(recordedChunks, { type }));
+      };
+      try{ mediaRecorder.stop(); }catch(e){ resolve(null); }
+    });
+  }
+
+  // Sends the recorded audio to the Hugging Face Whisper model and returns
+  // the transcribed text (empty string if anything goes wrong).
+  async function transcribeAudio(blob, isRetry){
+    try{
+      const resp = await fetch(HF_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${HF_TOKEN}`,
+          'Content-Type': blob.type || 'audio/webm'
+        },
+        body: blob
+      });
+
+      // Model is "cold" and still loading on Hugging Face's servers — wait
+      // the suggested time and try exactly once more.
+      if(resp.status === 503 && !isRetry){
+        let waitMs = 4000;
+        try{
+          const info = await resp.json();
+          if(info && info.estimated_time){ waitMs = Math.min(info.estimated_time * 1000, 15000); }
+        }catch(e){}
+        await new Promise(r => setTimeout(r, waitMs));
+        return transcribeAudio(blob, true);
+      }
+
+      const data = await resp.json();
+      if(data && typeof data.text === 'string') return data.text.trim();
+      if(Array.isArray(data) && data[0] && typeof data[0].text === 'string') return data[0].text.trim();
+      return '';
+    }catch(e){
+      return '';
+    }
+  }
+
+  async function finishListening(){
+    awaitingEvaluation = true;
+    parrotEmoji.classList.remove('listening');
+    micStatus.style.visibility = 'hidden';
+    timerWrap.style.display = 'none';
+
+    const blob = await stopRecordingAndGetBlob();
+
+    if(blob && blob.size > 0 && micReady){
+      loadingPanel.classList.add('show');
+      latestTranscript = await transcribeAudio(blob, false);
+      loadingPanel.classList.remove('show');
+    } else {
+      latestTranscript = '';
+    }
+
+    evaluateAndShowResult();
+  }
+
+  // Levenshtein distance
+  function levenshtein(a, b){
+    const m = a.length, n = b.length;
+    const dp = Array.from({length:m+1}, ()=> new Array(n+1).fill(0));
+    for(let i=0;i<=m;i++) dp[i][0]=i;
+    for(let j=0;j<=n;j++) dp[0][j]=j;
+    for(let i=1;i<=m;i++){
+      for(let j=1;j<=n;j++){
+        if(a[i-1]===b[j-1]) dp[i][j]=dp[i-1][j-1];
+        else dp[i][j]=1+Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function normalize(str){
+    return str.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+  }
+
+  function computeStars(target, heard){
+    const t = normalize(target);
+    const h = normalize(heard);
+    if(!h) return 1; // no speech detected — still encourage with 1 star
+    if(t === h) return 5;
+    // word-level containment check helps with short phrases
+    const dist = levenshtein(t, h);
+    const maxLen = Math.max(t.length, h.length, 1);
+    const similarity = 1 - dist/maxLen;
+    if(similarity >= 0.85) return 5;
+    if(similarity >= 0.65) return 4;
+    if(similarity >= 0.45) return 3;
+    if(similarity >= 0.2) return 2;
+    return 1;
+  }
+
+  const FEEDBACKS = {
+    5:['Tuyệt vời! 🌟','Xuất sắc lắm bé ơi!','Vẹt Xanh mê quá!'],
+    4:['Giỏi lắm! 👏','Sắp hoàn hảo rồi!','Rất tốt đó!'],
+    3:['Khá lắm! 🙂','Cố thêm chút nữa nhé!','Ổn áp rồi!'],
+    2:['Cố lên nào! 💪','Thử lại xem sao nhé!','Gần đúng rồi!'],
+    1:['Đừng nản nhé! 🌱','Nói to hơn thử xem!','Cùng thử lại nào!']
+  };
+
+  function evaluateAndShowResult(){
+    const target = words[currentIndex];
+    const stars = computeStars(target, latestTranscript);
+    const existing = scores[currentIndex];
+    if(existing){ scores[currentIndex] = {word:target, stars, heard: latestTranscript}; }
+    else{ scores.push({word:target, stars, heard: latestTranscript}); }
+
+    heardText.textContent = latestTranscript ? `Máy nghe được: "${latestTranscript}"` : 'Máy chưa nghe rõ, thử nói to hơn nhé!';
+    const msgs = FEEDBACKS[stars];
+    feedbackText.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+
+    resultPanel.classList.add('show');
+    timerWrap.style.display = 'none';
+
+    const starEls = document.querySelectorAll('#starsRow .star');
+    starEls.forEach((el, idx)=>{
+      el.classList.remove('lit');
+      if(idx < stars){
+        setTimeout(()=> el.classList.add('lit'), idx*120);
+      }
+    });
+
+    updateProgressUI();
+
+    if(currentIndex === words.length - 1){
+      continueBtn.textContent = '🏁 Hoàn thành';
+    } else {
+      continueBtn.textContent = '➡️ Tiếp tục';
+    }
+  }
+
+  retryBtn.addEventListener('click', ()=>{
+    loadWord(currentIndex);
+  });
+
+  continueBtn.addEventListener('click', ()=>{
+    if(currentIndex === words.length - 1){
+      showCompletion();
+    } else {
+      currentIndex += 1;
+      loadWord(currentIndex);
+    }
+  });
+
+  // ---------- Completion screen ----------
+  function showCompletion(){
+    clearInterval(timerInterval);
+    if(mediaRecorder && mediaRecorder.state !== 'inactive'){
+      try{ mediaRecorder.stop(); }catch(e){}
+    }
+    scoreList.innerHTML = '';
+    let total = 0;
+    scores.forEach(s=>{
+      total += s.stars;
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML = `<span>${s.word}</span><span class="stars-mini">${'⭐'.repeat(s.stars)}${'☆'.repeat(5-s.stars)}</span>`;
+      scoreList.appendChild(row);
+    });
+    const avg = scores.length ? (total/scores.length) : 0;
+    finalAvg.textContent = `Điểm trung bình: ${avg.toFixed(1)} / 5 ⭐`;
+    showScreen(screenComplete);
+  }
+
+  restartBtn.addEventListener('click', ()=>{
+    words = [];
+    scores = [];
+    currentIndex = 0;
+    wordInput.value = '';
+    renderChips();
+    showScreen(screenSetup);
+  });
+
+  // ---------- Init ----------
+  if(!micSupported){
+    unsupportedBanner.style.display = 'block';
+    startBtn.disabled = true;
+  }
+  renderChips();
+})();
+</script>
+</body>
+</html>
